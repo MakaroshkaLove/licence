@@ -14,9 +14,17 @@ app = Flask(__name__)
 LICENSES = {
     # Замените на ваш реальный HWID
     "4553BEC6D63967B1": {
-        "user_name": "Makaron",
+        "user_name": "Makaron_Old",
         "subscription_duration": 300,  # 5 минут в секундах
-        "max_uses": 100,  # Максимум использований
+        "max_uses": 999999,  # Бесконечные использования
+        "created_at": 0,  # Будет установлено при первом использовании
+        "last_used": 0,
+        "use_count": 0
+    },
+    "49AD4C3CEAFE8391": {
+        "user_name": "Makaron_New",
+        "subscription_duration": 300,  # 5 минут в секундах
+        "max_uses": 999999,  # Бесконечные использования
         "created_at": 0,  # Будет установлено при первом использовании
         "last_used": 0,
         "use_count": 0
@@ -836,6 +844,23 @@ def admin_edit_max_uses():
 
     LICENSES[hwid]['max_uses'] = max_uses
     return jsonify({"message": f"Максимальное количество использований для {hwid} изменено на {max_uses}"}), 200
+
+@app.route('/increment_usage', methods=['POST'])
+def increment_usage():
+    """Увеличение счетчика использований"""
+    data = request.get_json()
+    hwid = data.get('hwid')
+
+    if not hwid or hwid not in LICENSES:
+        return jsonify({"valid": False, "message": "Лицензия не найдена"}), 404
+
+    license_data = LICENSES[hwid]
+    
+    # Увеличиваем счетчик использований
+    license_data['use_count'] += 1
+    license_data['last_used'] = int(time.time())
+    
+    return jsonify({"valid": True, "message": "Счетчик использований увеличен"}), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
