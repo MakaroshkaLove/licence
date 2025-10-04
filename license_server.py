@@ -168,14 +168,29 @@ if __name__ == '__main__':
     
     # Получаем внешний URL Railway
     railway_url = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
+    railway_project_id = os.environ.get('RAILWAY_PROJECT_ID')
+    
+    # Проверяем все возможные переменные Railway
+    print("🔍 Railway Environment Variables:")
+    for key, value in os.environ.items():
+        if 'RAILWAY' in key.upper():
+            print(f"   {key} = {value}")
+    
     if railway_url:
         print(f"🌐 External URL: https://{railway_url}")
         print(f"🔗 License check endpoint: https://{railway_url}/check_license")
         print(f"📊 Admin panel: https://{railway_url}/admin/licenses?key=admin123")
+    elif railway_project_id:
+        # Если есть project ID, но нет domain
+        print(f"🌐 Railway Project ID: {railway_project_id}")
+        print(f"🔗 Try this URL: https://{railway_project_id}.up.railway.app")
+        print(f"🔗 License check endpoint: https://{railway_project_id}.up.railway.app/check_license")
+        print(f"📊 Admin panel: https://{railway_project_id}.up.railway.app/admin/licenses?key=admin123")
     else:
         print("🌐 Local development mode")
         print(f"🔗 License check endpoint: http://localhost:{port}/check_license")
         print(f"📊 Admin panel: http://localhost:{port}/admin/licenses?key=admin123")
+        print("💡 To get Railway URL: Go to Railway Dashboard → Settings → Networking → Generate Domain")
     
     print("=" * 50)
     app.run(host='0.0.0.0', port=port, debug=False)
