@@ -13,10 +13,10 @@ app = Flask(__name__)
 # Конфигурация лицензий (замените на свои данные)
 LICENSES = {
     # Замените на ваш реальный HWID
-    "YOUR_HWID_HERE": {
+    "4553BEC6D63967B1": {
         "user_name": "Makaron",
-        "subscription_duration": 3600,  # 1 час в секундах
-        "max_uses": 1000,  # Максимум использований
+        "subscription_duration": 60,  # 1 минута в секундах
+        "max_uses": 2,  # Максимум использований
         "created_at": int(time.time()),
         "last_used": 0,
         "use_count": 0
