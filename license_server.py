@@ -54,10 +54,19 @@ def validate_license(hwid):
 
 @app.route('/')
 def home():
+    railway_url = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
+    base_url = f"https://{railway_url}" if railway_url else f"http://localhost:{os.environ.get('PORT', 5000)}"
+    
     return jsonify({
         "message": "FloraVisuals License Server",
         "version": "1.0",
-        "status": "online"
+        "status": "online",
+        "base_url": base_url,
+        "endpoints": {
+            "check_license": f"{base_url}/check_license",
+            "admin_panel": f"{base_url}/admin/licenses?key=admin123",
+            "license_info": f"{base_url}/get_license_info?hwid=YOUR_HWID"
+        }
     })
 
 @app.route('/check_license', methods=['POST'])
@@ -156,4 +165,17 @@ def admin_licenses():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print(f"Starting FloraVisuals License Server on port {port}")
+    
+    # Получаем внешний URL Railway
+    railway_url = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
+    if railway_url:
+        print(f"🌐 External URL: https://{railway_url}")
+        print(f"🔗 License check endpoint: https://{railway_url}/check_license")
+        print(f"📊 Admin panel: https://{railway_url}/admin/licenses?key=admin123")
+    else:
+        print("🌐 Local development mode")
+        print(f"🔗 License check endpoint: http://localhost:{port}/check_license")
+        print(f"📊 Admin panel: http://localhost:{port}/admin/licenses?key=admin123")
+    
+    print("=" * 50)
     app.run(host='0.0.0.0', port=port, debug=False)
