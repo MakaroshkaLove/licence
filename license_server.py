@@ -15,8 +15,8 @@ LICENSES = {
     # Замените на ваш реальный HWID
     "4553BEC6D63967B1": {
         "user_name": "Makaron",
-        "subscription_duration": 60,  # 1 минута в секундах
-        "max_uses": 2,  # Максимум использований
+        "subscription_duration": 300,  # 5 минут в секундах
+        "max_uses": 1,  # Максимум использований
         "created_at": 0,  # Будет установлено при первом использовании
         "last_used": 0,
         "use_count": 0
@@ -154,27 +154,201 @@ def get_license_info():
 def admin_licenses():
     """Админ панель для просмотра всех лицензий"""
     admin_key = request.args.get('key')
-    
+
     if admin_key != "FloraVisuals2024_Admin_Key_7x9K2mP8qR5":  # Сложный пароль админки
         return jsonify({"error": "Неверный ключ администратора"}), 403
+
+    # Возвращаем HTML страницу с кнопками
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>FloraVisuals License Admin</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+            .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            h1 { color: #333; text-align: center; margin-bottom: 30px; }
+            .add-license { background: #e8f5e8; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+            .add-license h3 { margin-top: 0; color: #2e7d32; }
+            .form-group { margin: 10px 0; }
+            .form-group label { display: inline-block; width: 120px; font-weight: bold; }
+            .form-group input, .form-group select { padding: 5px; border: 1px solid #ddd; border-radius: 3px; width: 200px; }
+            table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #4CAF50; color: white; }
+            tr:nth-child(even) { background-color: #f2f2f2; }
+            button { padding: 5px 10px; border: none; cursor: pointer; border-radius: 3px; margin: 2px; }
+            .btn-reset { background-color: #ff9800; color: white; }
+            .btn-reset:hover { background-color: #f57c00; }
+            .btn-delete { background-color: #f44336; color: white; }
+            .btn-delete:hover { background-color: #d32f2f; }
+            .btn-add { background-color: #4CAF50; color: white; padding: 10px 20px; }
+            .btn-add:hover { background-color: #45a049; }
+            .btn-extend { background-color: #2196F3; color: white; }
+            .btn-extend:hover { background-color: #1976D2; }
+            .status-active { color: #4CAF50; font-weight: bold; }
+            .status-expired { color: #f44336; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔐 FloraVisuals License Admin Panel</h1>
+            
+            <div class="add-license">
+                <h3>➕ Add New License</h3>
+                <div class="form-group">
+                    <label>HWID:</label>
+                    <input type="text" id="new_hwid" placeholder="Enter HWID">
+                </div>
+                <div class="form-group">
+                    <label>User Name:</label>
+                    <input type="text" id="new_username" placeholder="Enter username">
+                </div>
+                <div class="form-group">
+                    <label>Duration (min):</label>
+                    <select id="new_duration">
+                        <option value="60">1 minute</option>
+                        <option value="300" selected>5 minutes</option>
+                        <option value="600">10 minutes</option>
+                        <option value="1800">30 minutes</option>
+                        <option value="3600">1 hour</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Max Uses:</label>
+                    <input type="number" id="new_max_uses" value="10" min="1" max="100">
+                </div>
+                <button class="btn-add" onclick="addLicense()">Add License</button>
+            </div>
+            
+            <table>
+                <tr>
+                    <th>HWID</th>
+                    <th>User</th>
+                    <th>Created</th>
+                    <th>Expires</th>
+                    <th>Last Used</th>
+                    <th>Uses</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+    """
     
-    result = {}
     for hwid, data in LICENSES.items():
         # Вычисляем время истечения
         expiration_time = data["created_at"] + data["subscription_duration"]
         expiration_readable = datetime.fromtimestamp(expiration_time).strftime("%Y-%m-%d %H:%M:%S") if data["created_at"] > 0 else "Не активирована"
+        created_readable = datetime.fromtimestamp(data["created_at"]).strftime("%Y-%m-%d %H:%M:%S") if data["created_at"] > 0 else "Не активирована"
+        last_used_readable = datetime.fromtimestamp(data["last_used"]).strftime("%Y-%m-%d %H:%M:%S") if data["last_used"] > 0 else "Никогда"
+        is_active = data["use_count"] < data["max_uses"] and int(time.time()) <= data["created_at"] + data["subscription_duration"]
+        status = "Активна" if is_active else "Истекла"
+        status_class = "status-active" if is_active else "status-expired"
         
-        result[hwid] = {
-            "user_name": data["user_name"],
-            "created_at": datetime.fromtimestamp(data["created_at"]).strftime("%Y-%m-%d %H:%M:%S") if data["created_at"] > 0 else "Не активирована",
-            "expires_at": expiration_readable,
-            "last_used": datetime.fromtimestamp(data["last_used"]).strftime("%Y-%m-%d %H:%M:%S") if data["last_used"] > 0 else "Никогда",
-            "use_count": data["use_count"],
-            "max_uses": data["max_uses"],
-            "status": "Активна" if data["use_count"] < data["max_uses"] and int(time.time()) <= data["created_at"] + data["subscription_duration"] else "Истекла"
-        }
+        html += f"""
+            <tr>
+                <td><code>{hwid}</code></td>
+                <td>{data["user_name"]}</td>
+                <td>{created_readable}</td>
+                <td>{expiration_readable}</td>
+                <td>{last_used_readable}</td>
+                <td>{data["use_count"]}/{data["max_uses"]}</td>
+                <td class="{status_class}">{status}</td>
+                <td>
+                    <button class="btn-reset" onclick="resetLicense('{hwid}')">🔄 Reset</button>
+                    <button class="btn-extend" onclick="extendLicense('{hwid}')">⏰ Extend</button>
+                    <button class="btn-delete" onclick="deleteLicense('{hwid}')">🗑️ Delete</button>
+                </td>
+            </tr>
+        """
     
-    return jsonify(result)
+    html += """
+            </table>
+        </div>
+        
+        <script>
+            function addLicense() {
+                const hwid = document.getElementById('new_hwid').value;
+                const username = document.getElementById('new_username').value;
+                const duration = document.getElementById('new_duration').value;
+                const maxUses = document.getElementById('new_max_uses').value;
+                
+                if (!hwid || !username) {
+                    alert('Please fill in HWID and Username');
+                    return;
+                }
+                
+                fetch('/admin/add_license?key=FloraVisuals2024_Admin_Key_7x9K2mP8qR5', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        hwid: hwid,
+                        username: username,
+                        duration: parseInt(duration),
+                        max_uses: parseInt(maxUses)
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    location.reload();
+                })
+                .catch(error => alert('Error: ' + error));
+            }
+            
+            function resetLicense(hwid) {
+                if (confirm('Reset this license? This will reset use count and start time.')) {
+                    fetch('/admin/reset_license?key=FloraVisuals2024_Admin_Key_7x9K2mP8qR5', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({hwid: hwid})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        location.reload();
+                    })
+                    .catch(error => alert('Error: ' + error));
+                }
+            }
+            
+            function extendLicense(hwid) {
+                const duration = prompt('Extend license by how many minutes?', '5');
+                if (duration && !isNaN(duration)) {
+                    fetch('/admin/extend_license?key=FloraVisuals2024_Admin_Key_7x9K2mP8qR5', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({hwid: hwid, minutes: parseInt(duration)})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        location.reload();
+                    })
+                    .catch(error => alert('Error: ' + error));
+                }
+            }
+            
+            function deleteLicense(hwid) {
+                if (confirm('Are you sure you want to DELETE this license? This cannot be undone!')) {
+                    fetch('/admin/delete_license?key=FloraVisuals2024_Admin_Key_7x9K2mP8qR5', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({hwid: hwid})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        location.reload();
+                    })
+                    .catch(error => alert('Error: ' + error));
+                }
+            }
+        </script>
+    </body>
+    </html>
+    """
+    
+    return html
 
 @app.route('/admin/reset_license', methods=['POST'])
 def admin_reset_license():
@@ -185,7 +359,7 @@ def admin_reset_license():
 
     data = request.get_json()
     hwid = data.get('hwid')
-    
+
     if not hwid or hwid not in LICENSES:
         return jsonify({"message": "Лицензия не найдена"}), 404
 
@@ -195,6 +369,71 @@ def admin_reset_license():
     license_data['use_count'] = 0
 
     return jsonify({"message": f"Лицензия для {hwid} сброшена и активирована"}), 200
+
+@app.route('/admin/add_license', methods=['POST'])
+def admin_add_license():
+    """Добавление новой лицензии"""
+    admin_key = request.args.get('key')
+    if admin_key != "FloraVisuals2024_Admin_Key_7x9K2mP8qR5":
+        return jsonify({"message": "Неверный ключ администратора"}), 403
+
+    data = request.get_json()
+    hwid = data.get('hwid')
+    username = data.get('username')
+    duration = data.get('duration', 300)  # 5 минут по умолчанию
+    max_uses = data.get('max_uses', 10)
+
+    if not hwid or not username:
+        return jsonify({"message": "HWID и имя пользователя обязательны"}), 400
+
+    if hwid in LICENSES:
+        return jsonify({"message": "Лицензия с таким HWID уже существует"}), 400
+
+    LICENSES[hwid] = {
+        "user_name": username,
+        "subscription_duration": duration,
+        "max_uses": max_uses,
+        "created_at": 0,  # Будет установлено при первом использовании
+        "last_used": 0,
+        "use_count": 0
+    }
+
+    return jsonify({"message": f"Лицензия для {hwid} добавлена"}), 200
+
+@app.route('/admin/extend_license', methods=['POST'])
+def admin_extend_license():
+    """Продление лицензии"""
+    admin_key = request.args.get('key')
+    if admin_key != "FloraVisuals2024_Admin_Key_7x9K2mP8qR5":
+        return jsonify({"message": "Неверный ключ администратора"}), 403
+
+    data = request.get_json()
+    hwid = data.get('hwid')
+    minutes = data.get('minutes', 5)
+
+    if not hwid or hwid not in LICENSES:
+        return jsonify({"message": "Лицензия не найдена"}), 404
+
+    license_data = LICENSES[hwid]
+    license_data['subscription_duration'] += minutes * 60  # Добавляем секунды
+
+    return jsonify({"message": f"Лицензия для {hwid} продлена на {minutes} минут"}), 200
+
+@app.route('/admin/delete_license', methods=['POST'])
+def admin_delete_license():
+    """Удаление лицензии"""
+    admin_key = request.args.get('key')
+    if admin_key != "FloraVisuals2024_Admin_Key_7x9K2mP8qR5":
+        return jsonify({"message": "Неверный ключ администратора"}), 403
+
+    data = request.get_json()
+    hwid = data.get('hwid')
+
+    if not hwid or hwid not in LICENSES:
+        return jsonify({"message": "Лицензия не найдена"}), 404
+
+    del LICENSES[hwid]
+    return jsonify({"message": f"Лицензия для {hwid} удалена"}), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
