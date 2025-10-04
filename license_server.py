@@ -17,7 +17,7 @@ LICENSES = {
         "user_name": "Makaron",
         "subscription_duration": 60,  # 1 минута в секундах
         "max_uses": 2,  # Максимум использований
-        "created_at": int(time.time()),
+        "created_at": 0,  # Будет установлено при первом использовании
         "last_used": 0,
         "use_count": 0
     }
@@ -35,21 +35,26 @@ def validate_license(hwid):
     """Проверка валидности лицензии"""
     if hwid not in LICENSES:
         return False, "Лицензия не найдена"
-    
+
     license_data = LICENSES[hwid]
-    
+
     # Проверяем количество использований
     if license_data["use_count"] >= license_data["max_uses"]:
         return False, "Превышено максимальное количество использований"
-    
+
+    # Если лицензия еще не была использована, устанавливаем время создания
+    if license_data["created_at"] == 0:
+        license_data["created_at"] = int(time.time())
+        return True, "Лицензия активирована"
+
     # Проверяем время истечения
     current_time = int(time.time())
     license_created = license_data["created_at"]
     duration = license_data["subscription_duration"]
-    
+
     if current_time > license_created + duration:
         return False, "Лицензия истекла"
-    
+
     return True, "Лицензия действительна"
 
 @app.route('/')
@@ -64,7 +69,7 @@ def home():
         "base_url": base_url,
         "endpoints": {
             "check_license": f"{base_url}/check_license",
-            "admin_panel": f"{base_url}/admin/licenses?key=admin123",
+            "admin_panel": f"{base_url}/admin/licenses?key=FloraVisuals2024_Admin_Key_7x9K2mP8qR5",
             "license_info": f"{base_url}/get_license_info?hwid=YOUR_HWID"
         }
     })
@@ -136,8 +141,12 @@ def get_license_info():
     license_data = LICENSES[hwid].copy()
     
     # Добавляем читаемые даты
-    license_data["created_at_readable"] = datetime.fromtimestamp(license_data["created_at"]).strftime("%Y-%m-%d %H:%M:%S")
+    license_data["created_at_readable"] = datetime.fromtimestamp(license_data["created_at"]).strftime("%Y-%m-%d %H:%M:%S") if license_data["created_at"] > 0 else "Не активирована"
     license_data["last_used_readable"] = datetime.fromtimestamp(license_data["last_used"]).strftime("%Y-%m-%d %H:%M:%S") if license_data["last_used"] > 0 else "Никогда"
+    
+    # Добавляем время истечения
+    expiration_time = license_data["created_at"] + license_data["subscription_duration"]
+    license_data["expires_at_readable"] = datetime.fromtimestamp(expiration_time).strftime("%Y-%m-%d %H:%M:%S") if license_data["created_at"] > 0 else "Не активирована"
     
     return jsonify(license_data)
 
@@ -146,14 +155,19 @@ def admin_licenses():
     """Админ панель для просмотра всех лицензий"""
     admin_key = request.args.get('key')
     
-    if admin_key != "admin123":  # Замените на свой пароль
+    if admin_key != "FloraVisuals2024_Admin_Key_7x9K2mP8qR5":  # Сложный пароль админки
         return jsonify({"error": "Неверный ключ администратора"}), 403
     
     result = {}
     for hwid, data in LICENSES.items():
+        # Вычисляем время истечения
+        expiration_time = data["created_at"] + data["subscription_duration"]
+        expiration_readable = datetime.fromtimestamp(expiration_time).strftime("%Y-%m-%d %H:%M:%S") if data["created_at"] > 0 else "Не активирована"
+        
         result[hwid] = {
             "user_name": data["user_name"],
-            "created_at": datetime.fromtimestamp(data["created_at"]).strftime("%Y-%m-%d %H:%M:%S"),
+            "created_at": datetime.fromtimestamp(data["created_at"]).strftime("%Y-%m-%d %H:%M:%S") if data["created_at"] > 0 else "Не активирована",
+            "expires_at": expiration_readable,
             "last_used": datetime.fromtimestamp(data["last_used"]).strftime("%Y-%m-%d %H:%M:%S") if data["last_used"] > 0 else "Никогда",
             "use_count": data["use_count"],
             "max_uses": data["max_uses"],
@@ -161,6 +175,26 @@ def admin_licenses():
         }
     
     return jsonify(result)
+
+@app.route('/admin/reset_license', methods=['POST'])
+def admin_reset_license():
+    """Сброс лицензии (установка нового времени создания)"""
+    admin_key = request.args.get('key')
+    if admin_key != "FloraVisuals2024_Admin_Key_7x9K2mP8qR5":
+        return jsonify({"message": "Неверный ключ администратора"}), 403
+
+    data = request.get_json()
+    hwid = data.get('hwid')
+    
+    if not hwid or hwid not in LICENSES:
+        return jsonify({"message": "Лицензия не найдена"}), 404
+
+    license_data = LICENSES[hwid]
+    license_data['created_at'] = int(time.time())  # Новое время создания
+    license_data['last_used'] = 0
+    license_data['use_count'] = 0
+
+    return jsonify({"message": f"Лицензия для {hwid} сброшена и активирована"}), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
@@ -179,17 +213,17 @@ if __name__ == '__main__':
     if railway_url:
         print(f"🌐 External URL: https://{railway_url}")
         print(f"🔗 License check endpoint: https://{railway_url}/check_license")
-        print(f"📊 Admin panel: https://{railway_url}/admin/licenses?key=admin123")
+        print(f"📊 Admin panel: https://{railway_url}/admin/licenses?key=FloraVisuals2024_Admin_Key_7x9K2mP8qR5")
     elif railway_project_id:
         # Если есть project ID, но нет domain
         print(f"🌐 Railway Project ID: {railway_project_id}")
         print(f"🔗 Try this URL: https://{railway_project_id}.up.railway.app")
         print(f"🔗 License check endpoint: https://{railway_project_id}.up.railway.app/check_license")
-        print(f"📊 Admin panel: https://{railway_project_id}.up.railway.app/admin/licenses?key=admin123")
+        print(f"📊 Admin panel: https://{railway_project_id}.up.railway.app/admin/licenses?key=FloraVisuals2024_Admin_Key_7x9K2mP8qR5")
     else:
         print("🌐 Local development mode")
         print(f"🔗 License check endpoint: http://localhost:{port}/check_license")
-        print(f"📊 Admin panel: http://localhost:{port}/admin/licenses?key=admin123")
+        print(f"📊 Admin panel: http://localhost:{port}/admin/licenses?key=FloraVisuals2024_Admin_Key_7x9K2mP8qR5")
         print("💡 To get Railway URL: Go to Railway Dashboard → Settings → Networking → Generate Domain")
     
     print("=" * 50)
