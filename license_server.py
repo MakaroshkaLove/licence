@@ -16,7 +16,7 @@ LICENSES = {
     "4553BEC6D63967B1": {
         "user_name": "Makaron",
         "subscription_duration": 300,  # 5 минут в секундах
-        "max_uses": 1,  # Максимум использований
+        "max_uses": 100,  # Максимум использований
         "created_at": 0,  # Будет установлено при первом использовании
         "last_used": 0,
         "use_count": 0
@@ -169,28 +169,42 @@ def admin_licenses():
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { 
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
                 min-height: 100vh;
                 padding: 20px;
+                background-attachment: fixed;
             }
             .container { 
                 max-width: 1400px; 
                 margin: 0 auto; 
-                background: rgba(255, 255, 255, 0.95); 
-                padding: 30px; 
-                border-radius: 20px; 
-                box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-                backdrop-filter: blur(10px);
+                background: rgba(255, 255, 255, 0.98); 
+                padding: 40px; 
+                border-radius: 25px; 
+                box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
             }
             .header {
                 text-align: center;
-                margin-bottom: 40px;
-                padding: 20px;
-                background: linear-gradient(45deg, #4CAF50, #45a049);
-                border-radius: 15px;
+                margin-bottom: 50px;
+                padding: 30px;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                border-radius: 20px;
                 color: white;
-                box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+                box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+                position: relative;
+                overflow: hidden;
+            }
+            .header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
+                pointer-events: none;
             }
             .header h1 { 
                 font-size: 2.5em; 
@@ -202,20 +216,34 @@ def admin_licenses():
                 opacity: 0.9;
             }
             .add-license { 
-                background: linear-gradient(135deg, #e8f5e8, #f1f8e9); 
-                padding: 25px; 
-                border-radius: 15px; 
-                margin-bottom: 30px;
-                border: 2px solid #4CAF50;
-                box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2);
+                background: linear-gradient(135deg, #e3f2fd, #f3e5f5); 
+                padding: 30px; 
+                border-radius: 20px; 
+                margin-bottom: 40px;
+                border: 2px solid #667eea;
+                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+                position: relative;
+                overflow: hidden;
+            }
+            .add-license::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(45deg, rgba(102, 126, 234, 0.05), transparent);
+                pointer-events: none;
             }
             .add-license h3 { 
-                margin-bottom: 20px; 
-                color: #2e7d32; 
-                font-size: 1.5em;
+                margin-bottom: 25px; 
+                color: #667eea; 
+                font-size: 1.6em;
                 display: flex;
                 align-items: center;
                 gap: 10px;
+                position: relative;
+                z-index: 1;
             }
             .form-row { 
                 display: flex; 
@@ -243,8 +271,9 @@ def admin_licenses():
             }
             .form-group input:focus, .form-group select:focus {
                 outline: none;
-                border-color: #4CAF50;
-                box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+                border-color: #667eea;
+                box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+                transform: translateY(-2px);
             }
             .table-container {
                 overflow-x: auto;
@@ -257,13 +286,24 @@ def admin_licenses():
                 background: white;
             }
             th { 
-                background: linear-gradient(45deg, #4CAF50, #45a049); 
+                background: linear-gradient(135deg, #667eea, #764ba2); 
                 color: white; 
-                padding: 15px 10px; 
+                padding: 18px 12px; 
                 text-align: left; 
-                font-weight: 600;
+                font-weight: 700;
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
+                letter-spacing: 0.8px;
+                font-size: 0.9em;
+                position: relative;
+            }
+            th::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, rgba(255,255,255,0.3), transparent);
             }
             td { 
                 padding: 15px 10px; 
@@ -315,38 +355,58 @@ def admin_licenses():
                 font-size: 12px;
             }
             .btn-reset { 
-                background: linear-gradient(45deg, #ff9800, #f57c00); 
+                background: linear-gradient(135deg, #ff9800, #f57c00); 
                 color: white; 
+                border-radius: 10px;
+                font-weight: 600;
             }
             .btn-reset:hover { 
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(255, 152, 0, 0.4);
             }
             .btn-delete { 
-                background: linear-gradient(45deg, #f44336, #d32f2f); 
+                background: linear-gradient(135deg, #f44336, #d32f2f); 
                 color: white; 
+                border-radius: 10px;
+                font-weight: 600;
             }
             .btn-delete:hover { 
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(244, 67, 54, 0.4);
             }
             .btn-add { 
-                background: linear-gradient(45deg, #4CAF50, #45a049); 
+                background: linear-gradient(135deg, #667eea, #764ba2); 
                 color: white; 
-                padding: 15px 30px; 
+                padding: 18px 35px; 
                 font-size: 16px;
+                border-radius: 12px;
+                font-weight: 700;
+                position: relative;
+                z-index: 1;
             }
             .btn-add:hover { 
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+                transform: translateY(-3px);
+                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
             }
             .btn-extend { 
-                background: linear-gradient(45deg, #2196F3, #1976D2); 
+                background: linear-gradient(135deg, #2196F3, #1976D2); 
                 color: white; 
+                border-radius: 10px;
+                font-weight: 600;
             }
             .btn-extend:hover { 
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
+            }
+            .btn-edit {
+                background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+                color: white;
+                border-radius: 10px;
+                font-weight: 600;
+            }
+            .btn-edit:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(156, 39, 176, 0.4);
             }
             .status-active { 
                 color: #4CAF50; 
@@ -362,17 +422,33 @@ def admin_licenses():
             }
             .stats-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1px));
-                gap: 20px;
-                margin-bottom: 30px;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 25px;
+                margin-bottom: 40px;
             }
             .stat-card {
                 background: linear-gradient(135deg, #667eea, #764ba2);
                 color: white;
-                padding: 20px;
-                border-radius: 15px;
+                padding: 25px;
+                border-radius: 20px;
                 text-align: center;
-                box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+                box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
+                position: relative;
+                overflow: hidden;
+                transition: transform 0.3s ease;
+            }
+            .stat-card:hover {
+                transform: translateY(-5px);
+            }
+            .stat-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(45deg, rgba(255,255,255,0.1), transparent);
+                pointer-events: none;
             }
             .stat-number {
                 font-size: 2em;
@@ -419,24 +495,24 @@ def admin_licenses():
                         <input type="text" id="new_username" placeholder="Введите имя пользователя">
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Время подписки:</label>
-                        <select id="new_duration">
-                            <option value="60">1 минута</option>
-                            <option value="300" selected>5 минут</option>
-                            <option value="600">10 минут</option>
-                            <option value="1800">30 минут</option>
-                            <option value="3600">1 час</option>
-                            <option value="7200">2 часа</option>
-                            <option value="86400">24 часа</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Максимум использований:</label>
-                        <input type="number" id="new_max_uses" value="10" min="1" max="100">
-                    </div>
-                </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Время подписки:</label>
+                                <select id="new_duration">
+                                    <option value="60">1 минута</option>
+                                    <option value="300" selected>5 минут</option>
+                                    <option value="600">10 минут</option>
+                                    <option value="1800">30 минут</option>
+                                    <option value="3600">1 час</option>
+                                    <option value="7200">2 часа</option>
+                                    <option value="86400">24 часа</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Максимум использований:</label>
+                                <input type="number" id="new_max_uses" value="100" min="1" max="1000" placeholder="Введите количество использований">
+                            </div>
+                        </div>
                 <button class="btn-add" onclick="addLicense()">➕ Добавить лицензию</button>
             </div>
             
@@ -481,6 +557,7 @@ def admin_licenses():
                 else:
                     time_remaining = f"{remaining_secs}с"
                 time_class = "time-warning" if remaining_seconds < 60 else "time-active"
+                # Лицензия активна если есть время И не превышено количество использований
                 is_active = data["use_count"] < data["max_uses"]
                 if is_active:
                     active_count += 1
@@ -497,7 +574,19 @@ def admin_licenses():
             is_active = False
             expired_count += 1
         
-        status = "Активна" if is_active else "Истекла"
+        # Статус зависит от времени И количества использований
+        if data["created_at"] > 0:
+            time_valid = remaining_seconds > 0
+            uses_valid = data["use_count"] < data["max_uses"]
+            is_active = time_valid and uses_valid
+            if not time_valid:
+                status = "Истекла по времени"
+            elif not uses_valid:
+                status = "Истекла по использованию"
+            else:
+                status = "Активна"
+        else:
+            status = "Не активирована"
         status_class = "status-active" if is_active else "status-expired"
         
         html += f"""
@@ -510,11 +599,12 @@ def admin_licenses():
                 <td>{data["use_count"]}/{data["max_uses"]}</td>
                 <td><div class="time-remaining {time_class}">{time_remaining}</div></td>
                 <td class="{status_class}">{status}</td>
-                <td>
-                    <button class="btn-reset" onclick="resetLicense('{hwid}')">🔄 Сбросить</button>
-                    <button class="btn-extend" onclick="extendLicense('{hwid}')">⏰ Продлить</button>
-                    <button class="btn-delete" onclick="deleteLicense('{hwid}')">🗑️ Удалить</button>
-                </td>
+                        <td>
+                            <button class="btn-reset" onclick="resetLicense('{hwid}')">🔄 Сбросить</button>
+                            <button class="btn-extend" onclick="extendLicense('{hwid}')">⏰ Продлить</button>
+                            <button class="btn-edit" onclick="editMaxUses('{hwid}', {data["max_uses"]})">✏️ Max Uses</button>
+                            <button class="btn-delete" onclick="deleteLicense('{hwid}')">🗑️ Удалить</button>
+                        </td>
             </tr>
         """
     
@@ -592,21 +682,44 @@ def admin_licenses():
                 }}
             }}
             
-            function deleteLicense(hwid) {{
-                if (confirm('Вы уверены, что хотите УДАЛИТЬ эту лицензию? Это действие нельзя отменить!')) {{
-                    fetch('/admin/delete_license?key=FloraVisuals2024_Admin_Key_7x9K2mP8qR5', {{
-                        method: 'POST',
-                        headers: {{ 'Content-Type': 'application/json' }},
-                        body: JSON.stringify({{hwid: hwid}})
-                    }})
-                    .then(response => response.json())
-                    .then(data => {{
-                        alert(data.message);
-                        location.reload();
-                    }})
-                    .catch(error => alert('Ошибка: ' + error));
-                }}
-            }}
+                    function deleteLicense(hwid) {{
+                        if (confirm('Вы уверены, что хотите УДАЛИТЬ эту лицензию? Это действие нельзя отменить!')) {{
+                            fetch('/admin/delete_license?key=FloraVisuals2024_Admin_Key_7x9K2mP8qR5', {{
+                                method: 'POST',
+                                headers: {{ 'Content-Type': 'application/json' }},
+                                body: JSON.stringify({{hwid: hwid}})
+                            }})
+                            .then(response => response.json())
+                            .then(data => {{
+                                alert(data.message);
+                                location.reload();
+                            }})
+                            .catch(error => alert('Ошибка: ' + error));
+                        }}
+                    }}
+                    
+                    function editMaxUses(hwid, currentMaxUses) {{
+                        const newMaxUses = prompt(`Изменить максимальное количество использований для ${{hwid}}:\\n\\nТекущее значение: ${{currentMaxUses}}\\n\\nВведите новое значение (1-1000):`, currentMaxUses);
+                        
+                        if (newMaxUses && !isNaN(newMaxUses) && newMaxUses >= 1 && newMaxUses <= 1000) {{
+                            fetch('/admin/edit_max_uses?key=FloraVisuals2024_Admin_Key_7x9K2mP8qR5', {{
+                                method: 'POST',
+                                headers: {{ 'Content-Type': 'application/json' }},
+                                body: JSON.stringify({{
+                                    hwid: hwid,
+                                    max_uses: parseInt(newMaxUses)
+                                }})
+                            }})
+                            .then(response => response.json())
+                            .then(data => {{
+                                alert(data.message);
+                                location.reload();
+                            }})
+                            .catch(error => alert('Ошибка: ' + error));
+                        }} else if (newMaxUses !== null) {{
+                            alert('Пожалуйста, введите корректное значение от 1 до 1000');
+                        }}
+                    }}
             
             // Автообновление каждые 30 секунд
             setInterval(() => {{
@@ -703,6 +816,26 @@ def admin_delete_license():
 
     del LICENSES[hwid]
     return jsonify({"message": f"Лицензия для {hwid} удалена"}), 200
+
+@app.route('/admin/edit_max_uses', methods=['POST'])
+def admin_edit_max_uses():
+    """Редактирование максимального количества использований"""
+    admin_key = request.args.get('key')
+    if admin_key != "FloraVisuals2024_Admin_Key_7x9K2mP8qR5":
+        return jsonify({"message": "Неверный ключ администратора"}), 403
+
+    data = request.get_json()
+    hwid = data.get('hwid')
+    max_uses = data.get('max_uses')
+
+    if not hwid or hwid not in LICENSES:
+        return jsonify({"message": "Лицензия не найдена"}), 404
+
+    if not max_uses or max_uses < 1 or max_uses > 1000:
+        return jsonify({"message": "Некорректное значение max_uses (должно быть от 1 до 1000)"}), 400
+
+    LICENSES[hwid]['max_uses'] = max_uses
+    return jsonify({"message": f"Максимальное количество использований для {hwid} изменено на {max_uses}"}), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
