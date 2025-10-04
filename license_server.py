@@ -20,14 +20,6 @@ LICENSES = {
         "created_at": 0,  # Будет установлено при первом использовании
         "last_used": 0,
         "use_count": 0
-    },
-    "49AD4C3CEAFE8391": {
-        "user_name": "Makaron_New",
-        "subscription_duration": 300,  # 5 минут в секундах
-        "max_uses": 999999,  # Бесконечные использования
-        "created_at": 0,  # Будет установлено при первом использовании
-        "last_used": 0,
-        "use_count": 0
     }
 }
 
@@ -513,7 +505,18 @@ def admin_licenses():
                                     <option value="1800">30 минут</option>
                                     <option value="3600">1 час</option>
                                     <option value="7200">2 часа</option>
-                                    <option value="86400">24 часа</option>
+                                    <option value="14400">4 часа</option>
+                                    <option value="28800">8 часов</option>
+                                    <option value="43200">12 часов</option>
+                                    <option value="86400">24 часа (1 день)</option>
+                                    <option value="172800">2 дня</option>
+                                    <option value="259200">3 дня</option>
+                                    <option value="604800">7 дней (1 неделя)</option>
+                                    <option value="1209600">14 дней (2 недели)</option>
+                                    <option value="2592000">30 дней (1 месяц)</option>
+                                    <option value="7776000">90 дней (3 месяца)</option>
+                                    <option value="31536000">365 дней (1 год)</option>
+                                    <option value="999999999">Навсегда (999999999 секунд)</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -674,7 +677,7 @@ def admin_licenses():
             }}
             
             function extendLicense(hwid) {{
-                const duration = prompt('Продлить лицензию на сколько минут?', '5');
+                const duration = prompt('Продлить лицензию на сколько времени?\\n\\nПримеры:\\n• 5 (минуты)\\n• 60 (1 час)\\n• 480 (8 часов)\\n• 1440 (24 часа)\\n• 10080 (7 дней)\\n• 43200 (30 дней)\\n• 999999 (навсегда)\\n\\nВведите время в минутах:', '5');
                 if (duration && !isNaN(duration)) {{
                     fetch('/admin/extend_license?key=FloraVisuals2024_Admin_Key_7x9K2mP8qR5', {{
                         method: 'POST',
